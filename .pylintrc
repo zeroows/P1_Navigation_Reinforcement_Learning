@@ -1,0 +1,5 @@
+[MASTER]
+extension-pkg-whitelist=numpy,torch
+
+[TYPECHECK]
+generated-members=numpy.*,torch.*
