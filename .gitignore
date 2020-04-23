@@ -2,3 +2,4 @@ runs/
 Banana_Linux
 *.log
 .vscode
+.ipynb_checkpoints
