@@ -6,12 +6,14 @@ from unityagents import UnityEnvironment
 from agent import Agent, QNet
 
 DEFAULT_ENV_NAME = "./Banana_Linux/Banana.x86_64"
+DEFAULT_MODEL_NAME = "model.pth"
+
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--env", default=DEFAULT_ENV_NAME,
                         help="Environment name to use, default=" + DEFAULT_ENV_NAME)
-    parser.add_argument("-m", "--model", required=False,
+    parser.add_argument("-m", "--model", default=DEFAULT_MODEL_NAME,
                         help="Model file to load to retain")
     args = parser.parse_args()
 
@@ -37,24 +39,27 @@ def main():
     print('States have length:', state_size)
 
     agent = Agent(state_size, action_size=action_size, batch_size=64)
-    agent.policy_net.load_state_dict(torch.load('target_model.pth'))
+
+    if args.model:
+        print("loading pretrained model: ", args.model)
+        weights = torch.load(args.model)
+        agent.policy_net.load_state_dict(weights)
 
     for i in range(3):
         env_info = env.reset(train_mode=False)[brain_name]
-        state = env_info.vector_observations[0] 
+        state = env_info.vector_observations[0]
         score = 0
-        for j in range(200):
-            action = agent.act(state)
-            env_info = env.step(action)[brain_name]
+        done = False
+        while not done:
+            action = agent.act(state, 0.)
+            env_info = env.step(int(action))[brain_name]
             next_state = env_info.vector_observations[0]
             reward = env_info.rewards[0]
             done = env_info.local_done[0]
             agent.step(state, action, reward, next_state, done)
             score += reward
             state = next_state
-            if done:
-                break
-        print("Episode {} is done total score is {}".format(i+1, score))        
+        print("Episode {} is done total score is {}".format(i+1, score))
     env.close()
 
 
